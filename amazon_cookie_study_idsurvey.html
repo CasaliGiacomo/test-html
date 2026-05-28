@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon.de</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Amazon Ember',Arial,sans-serif}
+body{background:#EAEDED}
+
+/* ── NAVBAR ── */
+.amz-nav{background:#131921;color:#fff;padding:0 12px;display:flex;align-items:center;gap:8px;height:60px}
+.amz-logo{color:#FF9900;font-size:22px;font-weight:700;padding:4px 6px;white-space:nowrap}
+.amz-logo span{color:#fff;font-size:11px;display:block;margin-top:-4px}
+.amz-deliver{font-size:11px;color:#ccc;padding:4px 6px;white-space:nowrap}
+.amz-deliver b{color:#fff;font-size:13px;display:block}
+.amz-search{flex:1;display:flex;height:40px}
+.amz-search select{background:#F3F3F3;border:none;padding:0 8px;font-size:12px;color:#333;border-radius:4px 0 0 4px;min-width:50px}
+.amz-search input{flex:1;border:none;padding:0 10px;font-size:14px;outline:none}
+.amz-search button{background:#FF9900;border:none;padding:0 14px;cursor:pointer;border-radius:0 4px 4px 0}
+.amz-search button i{color:#333;font-size:20px}
+.amz-account{font-size:11px;color:#ccc;padding:4px 6px;white-space:nowrap}
+.amz-account b{color:#fff;font-size:13px;display:block}
+.amz-orders{font-size:11px;color:#ccc;padding:4px 6px;white-space:nowrap}
+.amz-orders b{color:#fff;font-size:13px;display:block}
+.amz-cart{display:flex;align-items:center;gap:4px;padding:4px 8px;cursor:pointer;color:#fff;white-space:nowrap}
+.amz-cart-count{color:#FF9900;font-weight:700;font-size:18px}
+
+/* ── SUB-NAV ── */
+.amz-sub-nav{background:#232F3E;color:#fff;padding:0 12px;display:flex;align-items:center;gap:4px;height:38px;overflow:hidden}
+.amz-sub-nav a{color:#fff;font-size:13px;padding:6px 10px;white-space:nowrap;text-decoration:none}
+.amz-sub-nav a.bold{font-weight:700}
+
+/* ── HERO ── */
+.hero-banner{padding:20px;position:relative}
+.hero-inner{width:100%;height:300px;background:linear-gradient(135deg,#c8d7e8 0%,#a8c4de 50%,#b8d0e6 100%);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hero-overlay{position:absolute;left:5%;top:50%;transform:translateY(-50%);background:#fff;padding:16px 20px;border-radius:4px;text-align:left;box-shadow:0 2px 5px rgba(0,0,0,.15);max-width:220px}
+.hero-overlay h2{font-size:18px;font-weight:700;margin-bottom:8px;color:#111}
+.hero-overlay p{font-size:13px;color:#333;margin-bottom:12px}
+.btn-prime{background:#FF9900;border:1px solid #a88734;padding:8px 16px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;color:#111}
+
+/* ── MAIN CONTENT ── */
+.main{max-width:1500px;margin:0 auto;padding:16px 12px}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.card{background:#fff;border-radius:4px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:12px;color:#111}
+.card-img-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.card-img-grid div{background:#EAEDED;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center}
+.card-img-grid div i{font-size:32px;color:#999}
+.card-link{font-size:13px;color:#007185;cursor:pointer}
+.prod-row{background:#fff;border-radius:4px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.prod-row h3{font-size:21px;font-weight:700;color:#111;margin-bottom:16px}
+.prod-scroll{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.prod-item .img-box{background:#f7f7f7;border-radius:4px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;margin-bottom:8px;border:1px solid #eee}
+.prod-item .img-box i{font-size:40px;color:#bbb}
+.prod-item .name{font-size:13px;color:#111;margin-bottom:4px;line-height:1.3}
+.prod-item .price{color:#B12704;font-weight:700;font-size:14px}
+.prod-item .old-price{color:#888;font-size:12px;text-decoration:line-through}
+.prod-item .stars{color:#FF9900;font-size:12px}
+.prod-item .rating{font-size:12px;color:#007185}
+.badge-prime{color:#00A8E0;font-size:11px;font-weight:700}
+.badge-deal{background:#CC0C39;color:#fff;font-size:11px;padding:2px 5px;border-radius:2px}
+.promo-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.promo-card{background:#fff;border-radius:4px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.promo-card .img-placeholder{width:100%;height:140px;background:#EAEDED;border-radius:3px;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+.promo-card .img-placeholder i{font-size:48px;color:#bbb}
+.promo-card h3{font-size:15px;font-weight:700;color:#111;margin-bottom:4px}
+.promo-card p{font-size:13px;color:#555;margin-bottom:8px}
+
+/* ── FOOTER ── */
+.amz-footer-top{background:#37475A;color:#fff;padding:16px;text-align:center;font-size:13px;cursor:pointer;margin-top:24px}
+.amz-footer-mid{background:#232F3E;color:#fff;padding:24px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.amz-footer-mid h4{font-size:14px;font-weight:700;margin-bottom:10px}
+.amz-footer-mid a{display:block;font-size:13px;color:#DDD;margin-bottom:6px;cursor:pointer;text-decoration:none}
+.amz-footer-bot{background:#131921;color:#789;padding:16px;text-align:center;font-size:12px}
+.amz-footer-bot .logo{color:#FF9900;font-weight:700;font-size:18px;margin-bottom:8px}
+
+/* ── COOKIE BANNER ── */
+#cookie-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center}
+#cookie-banner{background:#fff;width:100%;padding:24px 28px;border-top:4px solid #FF9900;box-shadow:0 -4px 20px rgba(0,0,0,0.2)}
+#cookie-banner h2{font-size:17px;font-weight:700;color:#111;margin-bottom:8px}
+#cookie-banner p{font-size:13px;color:#444;line-height:1.6;margin-bottom:16px;max-width:860px}
+#cookie-banner p a{color:#007185;cursor:pointer;text-decoration:underline}
+.cookie-btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.btn-accept{background:#FF9900;border:1px solid #a88734;padding:10px 22px;border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;color:#111}
+.btn-decline{background:#fff;border:1px solid #999;padding:10px 22px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;color:#111}
+.btn-personal{background:#fff;border:1px solid #007185;padding:10px 22px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;color:#007185}
+.cookie-msg{margin-top:8px;font-size:13px;padding:10px 14px;border-radius:4px;display:none}
+.cookie-msg.accepted{background:#EAF3DE;color:#3B6D11;border:1px solid #C0DD97}
+.cookie-msg.declined{background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1}
+.cookie-msg.personal{background:#E6F1FB;color:#185FA5;border:1px solid #B5D4F4}
+
+/* ── PERSONALIZE MODAL ── */
+#personal-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center}
+#personal-modal.open{display:flex}
+.pm-box{background:#fff;border-radius:6px;padding:24px;max-width:480px;width:90%}
+.pm-box h3{font-size:17px;font-weight:700;color:#111;margin-bottom:6px}
+.pm-box > p{font-size:13px;color:#555;margin-bottom:18px;line-height:1.5}
+.pm-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #eee}
+.pm-toggle:last-of-type{border-bottom:none}
+.pm-toggle-label{font-size:13px;color:#111;font-weight:500}
+.pm-toggle-sub{font-size:12px;color:#888;margin-top:2px}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:#FF9900}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px)}
+.toggle-switch input:disabled+.toggle-slider{background:#FF9900;opacity:0.7;cursor:not-allowed}
+.pm-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.pm-save{background:#FF9900;border:1px solid #a88734;padding:10px 20px;border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;color:#111}
+.pm-cancel{background:#fff;border:1px solid #999;padding:10px 20px;border-radius:4px;font-size:14px;cursor:pointer;color:#111}
+</style>
+</head>
+<body>
+
+<!-- COOKIE BANNER -->
+<div id="cookie-overlay">
+  <div id="cookie-banner">
+    <h2>&#127850; Datenschutzeinstellungen</h2>
+    <p>
+      Wir verwenden Cookies und ähnliche Tools, um Ihr Einkaufserlebnis zu verbessern, unsere Dienste anzubieten
+      und um zu verstehen, wie Kunden unsere Dienste nutzen. Zugelassene Drittanbieter verwenden diese Tools auch
+      in Verbindung mit der Anzeige von Werbung durch uns.
+      Weitere Informationen finden Sie in unserer <a href="#">Datenschutzerklärung</a> und <a href="#">Cookie-Richtlinie</a>.
+    </p>
+    <div class="cookie-btns">
+      <button class="btn-accept"   onclick="handleCookie('accepted')">&#10003; Akzeptieren</button>
+      <button class="btn-decline"  onclick="handleCookie('declined')">&#10007; Ablehnen</button>
+      <button class="btn-personal" onclick="openPersonalize()">&#9881; Personalisieren</button>
+    </div>
+    <div class="cookie-msg accepted" id="msg-accepted">&#10003; Alle Cookies akzeptiert – Ihre Auswahl wurde gespeichert.</div>
+    <div class="cookie-msg declined" id="msg-declined">&#10007; Nur notwendige Cookies aktiv – Ihre Auswahl wurde gespeichert.</div>
+    <div class="cookie-msg personal" id="msg-personal">&#10003; Ihre Einstellungen wurden gespeichert.</div>
+  </div>
+</div>
+
+<!-- PERSONALIZE MODAL -->
+<div id="personal-modal">
+  <div class="pm-box">
+    <h3>&#9881; Cookie-Einstellungen anpassen</h3>
+    <p>Wählen Sie, welche Cookies Sie zulassen möchten. Notwendige Cookies können nicht deaktiviert werden.</p>
+    <div class="pm-toggle">
+      <div><div class="pm-toggle-label">Notwendige Cookies</div><div class="pm-toggle-sub">Für den Betrieb der Website erforderlich</div></div>
+      <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-slider"></span></label>
+    </div>
+    <div class="pm-toggle">
+      <div><div class="pm-toggle-label">Analyse-Cookies</div><div class="pm-toggle-sub">Helfen uns, die Nutzung der Website zu verstehen</div></div>
+      <label class="toggle-switch"><input type="checkbox" id="t-analytics"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="pm-toggle">
+      <div><div class="pm-toggle-label">Marketing-Cookies</div><div class="pm-toggle-sub">Für personalisierte Werbung und Empfehlungen</div></div>
+      <label class="toggle-switch"><input type="checkbox" id="t-marketing"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="pm-toggle">
+      <div><div class="pm-toggle-label">Personalisierungs-Cookies</div><div class="pm-toggle-sub">Für ein individuell angepasstes Einkaufserlebnis</div></div>
+      <label class="toggle-switch"><input type="checkbox" id="t-personal"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="pm-actions">
+      <button class="pm-save"   onclick="savePersonal()">Einstellungen speichern</button>
+      <button class="pm-cancel" onclick="closePersonalize()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- AMAZON PAGE (behind banner, blurred) -->
+<div id="page-content" style="filter:blur(2px);pointer-events:none">
+
+  <nav class="amz-nav">
+    <div class="amz-logo">amazon<span>.de</span></div>
+    <div class="amz-deliver"><span>Lieferung an</span><b>&#128205; Deutschland</b></div>
+    <div class="amz-search">
+      <select><option>Alle</option><option>Elektronik</option><option>Bücher</option><option>Kleidung</option><option>Sport</option></select>
+      <input type="text" placeholder="Suche auf Amazon.de">
+      <button aria-label="Suchen"><i class="ti ti-search"></i></button>
+    </div>
+    <div class="amz-account"><span>Hallo, Anmelden</span><b>Konto und Listen &#8964;</b></div>
+    <div class="amz-orders"><span>Retouren</span><b>&amp; Bestellungen</b></div>
+    <div class="amz-cart"><i class="ti ti-shopping-cart" style="font-size:26px"></i><span class="amz-cart-count">0</span><b style="font-size:13px">Warenkorb</b></div>
+  </nav>
+
+  <div class="amz-sub-nav">
+    <a class="bold">&#9776; Alle</a>
+    <a>Bestseller</a><a>Amazon Basics</a><a>Prime</a><a>Angebote</a><a>Neu bei Amazon</a><a>Fire TV</a><a>Echo &amp; Alexa</a><a>Kundendienst</a>
+  </div>
+
+  <div class="hero-banner">
+    <div class="hero-inner">
+      <div style="text-align:center">
+        <i class="ti ti-bolt" style="font-size:80px;color:#FF9900;opacity:0.4"></i>
+        <div style="font-size:28px;font-weight:700;color:#111;margin-top:8px">Blitzangebote</div>
+        <div style="font-size:16px;color:#333;margin-top:4px">Nur für kurze Zeit – bis zu 50% sparen</div>
+      </div>
+      <div class="hero-overlay">
+        <h2>Exklusive Angebote</h2>
+        <p>Heute besondere Rabatte auf Top-Produkte entdecken.</p>
+        <button class="btn-prime">Jetzt shoppen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="cards-grid">
+      <div class="card"><h3>Stark nachgefragt</h3><div class="card-img-grid"><div><i class="ti ti-device-laptop"></i></div><div><i class="ti ti-headphones"></i></div><div><i class="ti ti-device-mobile"></i></div><div><i class="ti ti-camera"></i></div></div><span class="card-link">Mehr entdecken</span></div>
+      <div class="card"><h3>Mode für Sie &amp; Ihn</h3><div class="card-img-grid"><div><i class="ti ti-shirt"></i></div><div><i class="ti ti-shoe"></i></div><div><i class="ti ti-backpack"></i></div><div><i class="ti ti-hat"></i></div></div><span class="card-link">Zur Modewelt</span></div>
+      <div class="card"><h3>Spielzeug &amp; Spiele</h3><div class="card-img-grid"><div><i class="ti ti-device-gamepad"></i></div><div><i class="ti ti-puzzle"></i></div><div><i class="ti ti-building-castle"></i></div><div><i class="ti ti-robot"></i></div></div><span class="card-link">Spielzeug entdecken</span></div>
+      <div class="card"><h3>Heimwerken &amp; Garten</h3><div class="card-img-grid"><div><i class="ti ti-tool"></i></div><div><i class="ti ti-plant"></i></div><div><i class="ti ti-drill"></i></div><div><i class="ti ti-lamp"></i></div></div><span class="card-link">Jetzt shoppen</span></div>
+    </div>
+
+    <div class="prod-row">
+      <h3>Bestseller – die meistgekauften Artikel</h3>
+      <div class="prod-scroll">
+        <div class="prod-item"><div class="img-box"><i class="ti ti-device-airpods"></i></div><div class="name">Bluetooth Kopfhörer kabellos</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span class="rating">(4.382)</span></div><span class="badge-deal">Angebot</span><div><span class="price">€24,99</span> <span class="old-price">€39,99</span></div><div class="badge-prime">&#10003; Prime</div></div>
+        <div class="prod-item"><div class="img-box"><i class="ti ti-device-watch"></i></div><div class="name">Smartwatch Fitness Tracker</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733; <span class="rating">(12.071)</span></div><div><span class="price">€49,99</span></div><div class="badge-prime">&#10003; Prime</div></div>
+        <div class="prod-item"><div class="img-box"><i class="ti ti-device-tablet"></i></div><div class="name">Fire HD 10 Tablet Full-HD</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span class="rating">(8.234)</span></div><div><span class="price">€149,99</span></div></div>
+        <div class="prod-item"><div class="img-box"><i class="ti ti-coffee"></i></div><div class="name">Kaffeemaschine mit Mahlwerk</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span class="rating">(2.891)</span></div><span class="badge-deal">Angebot</span><div><span class="price">€89,95</span></div><div class="badge-prime">&#10003; Prime</div></div>
+        <div class="prod-item"><div class="img-box"><i class="ti ti-smart-home"></i></div><div class="name">Smart-Home Steckdose WLAN</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733; <span class="rating">(6.103)</span></div><div><span class="price">€12,99</span></div><div class="badge-prime">&#10003; Prime</div></div>
+        <div class="prod-item"><div class="img-box"><i class="ti ti-book"></i></div><div class="name">Kochbuch – 365 Rezepte</div><div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span class="rating">(983)</span></div><div><span class="price">€19,99</span></div></div>
+      </div>
+    </div>
+
+    <div class="promo-row">
+      <div class="promo-card"><div class="img-placeholder"><i class="ti ti-bolt"></i></div><h3>Blitzangebote</h3><p>Zeitlich begrenzte Top-Deals des Tages</p><span class="card-link">Alle Angebote ansehen</span></div>
+      <div class="promo-card"><div class="img-placeholder"><i class="ti ti-crown"></i></div><h3>Prime entdecken</h3><p>Kostenlose Lieferung, exklusive Deals &amp; mehr</p><span class="card-link">30 Tage gratis testen</span></div>
+      <div class="promo-card"><div class="img-placeholder"><i class="ti ti-package"></i></div><h3>Amazon Basics</h3><p>Qualitätsprodukte zu kleinen Preisen</p><span class="card-link">Jetzt stöbern</span></div>
+      <div class="promo-card"><div class="img-placeholder"><i class="ti ti-gift"></i></div><h3>Geschenkideen</h3><p>Für jeden Anlass das perfekte Geschenk finden</p><span class="card-link">Geschenke entdecken</span></div>
+    </div>
+  </div>
+
+  <div class="amz-footer-top">&#8593; Zurück nach oben</div>
+  <div class="amz-footer-mid">
+    <div><h4>Amazon kennenlernen</h4><a>Karriere</a><a>Über Amazon</a><a>Blog</a><a>Investor Relations</a></div>
+    <div><h4>Geld verdienen</h4><a>Verkaufen auf Amazon</a><a>Amazon Business</a><a>Affiliate-Programm</a></div>
+    <div><h4>Zahlungsprodukte</h4><a>Amazon Visa Kreditkarte</a><a>Ratenzahlung</a><a>Amazon Pay</a></div>
+    <div><h4>Hilfe</h4><a>Kundendienst</a><a>Retouren</a><a>App herunterladen</a></div>
+  </div>
+  <div class="amz-footer-bot">
+    <div class="logo">amazon</div>
+    <div>Nutzungsbedingungen &nbsp;|&nbsp; Datenschutzerklärung &nbsp;|&nbsp; Cookie-Einstellungen &nbsp;|&nbsp; Impressum</div>
+    <div style="margin-top:6px">© 1998–2025, Amazon.com, Inc. oder Tochtergesellschaften</div>
+  </div>
+
+</div><!-- end #page-content -->
+
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT – IDSURVEY POSTMESSAGE INTEGRATION
+     ════════════════════════════════════════
+
+  HOW IT WORKS:
+  1. This HTML is loaded inside an <iframe> in IdSurvey
+  2. When the respondent clicks a cookie button, the JS sends
+     the data to the parent IdSurvey page via window.parent.postMessage()
+  3. A clientscript listener in IdSurvey receives the data and
+     writes it to hidden form fields
+  4. The survey auto-advances to the next page
+
+  DATA SENT (postMessage payload):
+  {
+    type: 'cookieStudyResult',
+    cookie_choice: 'accepted' | 'declined' | 'personalized',
+    cookie_details: 'all' | 'none' | 'analytics-1_marketing-0_personal-1',
+    cookie_timestamp: '2025-01-15T10:30:00.000Z'
+  }
+
+  ALSO SUPPORTS STANDALONE MODE:
+  If not in an iframe (e.g. local testing), the banner simply
+  dismisses and the Amazon page becomes interactive.
+
+  ════════════════════════════════════════ -->
+<script>
+(function() {
+
+  var isInIframe = (window !== window.parent);
+
+  function sendToParent(choice, details) {
+    var timestamp = new Date().toISOString();
+
+    // Show confirmation message
+    var msgId = 'msg-' + (choice === 'personalized' ? 'personal' : choice);
+    document.getElementById(msgId).style.display = 'block';
+
+    // Send data to parent (IdSurvey)
+    if (isInIframe) {
+      window.parent.postMessage({
+        type: 'cookieStudyResult',
+        cookie_choice: choice,
+        cookie_details: details,
+        cookie_timestamp: timestamp
+      }, '*');
+    }
+
+    // After a short delay, dismiss the banner (for visual feedback)
+    setTimeout(function() {
+      document.getElementById('cookie-overlay').style.display = 'none';
+      var page = document.getElementById('page-content');
+      page.style.filter = 'none';
+      page.style.pointerEvents = 'auto';
+    }, 1500);
+  }
+
+  // ── Public handlers (called by buttons) ──
+  window.handleCookie = function(choice) {
+    var details = (choice === 'accepted') ? 'all' : 'none';
+    sendToParent(choice, details);
+  };
+
+  window.openPersonalize = function() {
+    document.getElementById('personal-modal').classList.add('open');
+  };
+
+  window.closePersonalize = function() {
+    document.getElementById('personal-modal').classList.remove('open');
+  };
+
+  window.savePersonal = function() {
+    var analytics = document.getElementById('t-analytics').checked ? '1' : '0';
+    var marketing = document.getElementById('t-marketing').checked ? '1' : '0';
+    var personal  = document.getElementById('t-personal').checked  ? '1' : '0';
+
+    var details = 'analytics-' + analytics +
+                  '_marketing-' + marketing +
+                  '_personal-' + personal;
+
+    document.getElementById('personal-modal').classList.remove('open');
+    sendToParent('personalized', details);
+  };
+
+})();
+</script>
+
+</body>
+</html>
