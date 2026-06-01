@@ -7,7 +7,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; min-height: 100vh; }
 body { font-family: Arial, sans-serif; overflow-x: hidden; }
+#page-content { width: 100%; }
+.amz-nav, .amz-sub, .amz-hero, .amz-section, .amz-footer, .amz-footer-bot,
+.li-nav, .li-main,
+.fb-nav, .fb-main { width: 100%; }
 
 #scroll-hint { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.72); color:#fff; padding:8px 18px; border-radius:20px; font-size:13px; z-index:200; transition:opacity 0.4s; white-space:nowrap; }
 #scroll-hint.hidden { opacity:0; pointer-events:none; }
