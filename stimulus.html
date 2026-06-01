@@ -4,11 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Study Stimulus</title>
+  <script>
+// Force viewport to match actual iframe width
+(function(){
+  var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+  var meta = document.querySelector('meta[name="viewport"]');
+  if(meta) meta.setAttribute('content', 'width=' + w + ', initial-scale=1.0');
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { min-width: 100%; background: inherit; }
 html, body { width: 100%; min-height: 100vh; }
-body { font-family: Arial, sans-serif; overflow-x: hidden; }
+body { font-family: Arial, sans-serif; overflow-x: hidden; min-width: 100%; }
 #page-content { width: 100%; }
 .amz-nav, .amz-sub, .amz-hero, .amz-section, .amz-footer, .amz-footer-bot,
 .li-nav, .li-main,
