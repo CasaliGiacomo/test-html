@@ -177,6 +177,26 @@ body.facebook .btn-personal { border: 1px solid #1877F2; color: #1877F2; }
 body.facebook #cookie-banner { border-top: 4px solid #1877F2; }
 body.facebook #cookie-banner a { color: #1877F2; }
 
+/* Responsive: hide right sidebar on narrow screens */
+@media (max-width: 900px) {
+  body.linkedin .li-main { 
+    grid-template-columns: 200px 1fr; 
+  }
+  body.linkedin .li-main > div:last-child { display: none; }
+  
+  body.facebook .fb-main { 
+    grid-template-columns: 200px 1fr; 
+  }
+  body.facebook .fb-main > div:last-child { display: none; }
+}
+
+@media (max-width: 600px) {
+  body.linkedin .li-main { grid-template-columns: 1fr; }
+  body.linkedin .li-main > div:first-child { display: none; }
+  body.facebook .fb-main { grid-template-columns: 1fr; }
+  body.facebook .fb-main > div:first-child { display: none; }
+}
+
 </style>
 </head>
 <body>
