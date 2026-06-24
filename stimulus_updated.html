@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Stimulus</title>
+<script>
+(function(){
+  var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+  var meta = document.querySelector('meta[name="viewport"]');
+  if(meta) meta.setAttribute('content', 'width=' + w + ', initial-scale=1.0');
+})();
+</script>
+<style>
+/* ── BASE (always applied, never touch) ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; min-height: 100vh; }
+body { overflow-x: hidden; }
+#page-content { width: 100%; }
+
+#scroll-hint {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.72); color: #fff; padding: 8px 18px;
+  border-radius: 20px; font-size: 13px; z-index: 200;
+  transition: opacity 0.4s; white-space: nowrap; pointer-events: none;
+}
+#scroll-hint.hidden { opacity: 0; pointer-events: none; }
+</style>
+<!-- Per-condition CSS injected here by JavaScript -->
+<style id="condition-css"></style>
+</head>
+<body>
+
+<div id="scroll-hint">&#8595; Scroll to explore</div>
+<div id="page-content"></div>
+<div id="consent-container"></div>
+
+<script>
+(function(){
+
+  /* ════════════════════════════════════════════════
+     URL PARAMETERS
+     condition : A1 | A2 | M1 | M2 | L1 | L2
+     delay     : seconds after first scroll before banner appears (default 7)
+  ════════════════════════════════════════════════ */
+  var params    = new URLSearchParams(window.location.search);
+  var condition = (params.get('condition') || 'M2').toUpperCase();
+  var delay     = parseInt(params.get('delay') || '7', 10) * 1000;
+  var isInIframe = (window !== window.parent);
+
+  /* ════════════════════════════════════════════════
+     GLOBAL RESULT SENDER
+     Every condition calls window.sendCookieResult()
+     when the respondent makes their choice.
+     DO NOT MODIFY — this is the IdSurvey integration.
+  ════════════════════════════════════════════════ */
+  window.sendCookieResult = function(choice, details) {
+    if (isInIframe) {
+      window.parent.postMessage({
+        type:             'cookieStudyResult',
+        cookie_choice:    choice,
+        cookie_details:   details,
+        cookie_timestamp: new Date().toISOString()
+      }, '*');
+    }
+  };
+
+  /* ════════════════════════════════════════════════
+     CONDITIONS OBJECT
+     Each condition has:
+       css         — CSS string for fake website + consent overlay
+       pageHtml    — HTML string for fake website content
+       consentHtml — HTML string for consent overlay (starts with hidden attr)
+       overlayId   — id of the overlay element shown by scroll trigger
+       initConsent — function called after HTML injection; wires up buttons
+                     and calls window.sendCookieResult() on choice
+  ════════════════════════════════════════════════ */
+  var C = {};
+
+  /* ────────────────────────────────────────────────
+     M2 — SocialSphere / Neutral
+     (based on Christina's socialsphere-mobile-en-neutral.html)
+  ──────────────────────────────────────────────── */
+  C.M2 = {
+    overlayId: 'ssOverlay',
+
+    css: `
+      :root{
+        --accent:#2f7df6; --accent-dark:#1f63d6; --teal:#19c2c2;
+        --like:#ed4956; --ink:#0f1419; --muted:#6b7280; --line:#efeff0; --soft:#f4f6f8;
+      }
+      button{font-family:inherit;cursor:pointer;}
+      a{color:var(--accent-dark);text-decoration:none;}
+      :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+      body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;background:#fff;color:var(--ink);
+        font-size:14px;line-height:1.4;padding-bottom:58px;}
+      /* Top bar */
+      .topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+        display:flex;align-items:center;padding:10px 14px;}
+      .ss-logo{display:flex;align-items:center;gap:8px;margin-right:auto;}
+      .ss-mark{width:28px;height:28px;}
+      .ss-word{font-size:20px;font-weight:800;letter-spacing:-.5px;}
+      .ss-word b{background:linear-gradient(45deg,var(--accent),var(--teal));
+        -webkit-background-clip:text;background-clip:text;color:transparent;}
+      .top-icons{display:flex;gap:18px;}
+      .top-icons button{background:none;border:0;font-size:23px;color:var(--ink);line-height:1;}
+      /* Stories */
+      .stories{display:flex;gap:14px;overflow-x:auto;padding:12px 14px;border-bottom:1px solid var(--line);}
+      .stories::-webkit-scrollbar{height:0;}
+      .story{flex:0 0 auto;width:64px;text-align:center;}
+      .ring{width:62px;height:62px;border-radius:50%;padding:2.5px;
+        background:linear-gradient(45deg,var(--accent),var(--teal));}
+      .ring.me{background:#dadde1;}
+      .ring .pic{width:100%;height:100%;border-radius:50%;border:2px solid #fff;display:flex;
+        align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:20px;position:relative;}
+      .ring.me .pic{color:#65676b;background:#eef0f2;}
+      .ring.me .pic .add{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;
+        border-radius:50%;background:var(--accent);color:#fff;border:2px solid #fff;font-size:13px;
+        display:flex;align-items:center;justify-content:center;}
+      .story span{display:block;font-size:11px;margin-top:5px;color:var(--ink);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      /* Posts */
+      .post{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px;}
+      .post-head{display:flex;align-items:center;gap:10px;padding:10px 14px;}
+      .post-head .av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+        justify-content:center;color:#fff;font-weight:800;font-size:15px;}
+      .post-head .name{font-weight:700;font-size:13.5px;}
+      .post-head .loc{font-size:11.5px;color:var(--muted);}
+      .post-head .more{margin-left:auto;font-size:20px;background:none;border:0;color:var(--ink);}
+      .post-img{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;}
+      .post-img svg{width:24%;height:24%;opacity:.7;}
+      .p1{background:linear-gradient(135deg,#bcd4f7,#5b8fe6);} .p1 svg{color:#2f5fa8;}
+      .p2{background:linear-gradient(135deg,#bdeee9,#39b8ad);} .p2 svg{color:#127c73;}
+      .actions{display:flex;align-items:center;gap:16px;padding:10px 14px 6px;font-size:25px;}
+      .actions button{background:none;border:0;color:var(--ink);line-height:1;padding:0;}
+      .actions .like.on{color:var(--like);}
+      .actions .save{margin-left:auto;}
+      .likes{padding:0 14px;font-weight:700;font-size:13.5px;}
+      .cap{padding:4px 14px 0;font-size:13.5px;}
+      .cap b{font-weight:700;}
+      .cmts{padding:4px 14px 0;font-size:13px;color:var(--muted);}
+      .time{padding:4px 14px 0;font-size:10.5px;color:var(--muted);
+        text-transform:uppercase;letter-spacing:.3px;}
+      /* Bottom nav */
+      .nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:#fff;
+        border-top:1px solid var(--line);display:flex;justify-content:space-around;
+        align-items:center;padding:9px 0 11px;}
+      .nav button{background:none;border:0;color:var(--ink);}
+      .nav svg{width:26px;height:26px;}
+      .nav .me{width:26px;height:26px;border-radius:50%;
+        background:linear-gradient(45deg,var(--accent),var(--teal));
+        display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;}
+      /* Consent overlay */
+      .consent-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;
+        display:flex;align-items:flex-end;}
+      .consent-overlay[hidden]{display:none;}
+      .consent{background:#fff;color:var(--ink);width:100%;border-radius:16px 16px 0 0;
+        box-shadow:0 -10px 36px rgba(0,0,0,.3);max-height:92vh;display:flex;flex-direction:column;}
+      .c-body{padding:18px 18px 0;overflow-y:auto;}
+      .consent h2{font-size:18px;margin:0 0 10px;font-weight:800;line-height:1.3;}
+      .consent p{font-size:13px;color:#3a3f45;margin:0 0 12px;line-height:1.5;}
+      .consent h3{font-size:14.5px;margin:16px 0 8px;font-weight:800;}
+      .consent a{text-decoration:underline;color:var(--accent-dark);}
+      .consent ul{margin:0 0 12px;padding-left:20px;}
+      .consent ul li{font-size:12.5px;color:#55585e;line-height:1.5;margin-bottom:8px;}
+      .optrow{display:flex;gap:12px;padding:14px 0;border-top:1px solid var(--line);
+        align-items:flex-start;cursor:pointer;}
+      .optrow input{appearance:none;-webkit-appearance:none;width:22px;height:22px;
+        border:2px solid #b6bcc4;border-radius:50%;margin:2px 0 0;flex:0 0 auto;position:relative;}
+      .optrow input:checked{border-color:var(--accent);}
+      .optrow input:checked:after{content:"";position:absolute;inset:3px;
+        border-radius:50%;background:var(--accent);}
+      .optrow .t strong{display:block;font-size:14.5px;margin-bottom:3px;}
+      .optrow .t span{font-size:12.5px;color:#55585e;line-height:1.5;}
+      .c-foot{padding:14px 18px;border-top:1px solid var(--line);background:#fff;}
+      .ss-btn{width:100%;border-radius:24px;padding:13px;font-size:15px;font-weight:700;
+        background:var(--accent);color:#fff;border:none;cursor:pointer;}
+      .ss-btn:hover{background:var(--accent-dark);}
+      .ss-warn{display:none;color:#cc0000;font-size:12px;text-align:center;padding:6px 0 0;}
+      .ss-warn.show{display:block;}
+    `,
+
+    pageHtml: `
+      <header class="topbar">
+        <div class="ss-logo" aria-label="SocialSphere">
+          <svg class="ss-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <defs><linearGradient id="ssGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#2f7df6"/>
+              <stop offset="1" stop-color="#19c2c2"/>
+            </linearGradient></defs>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="url(#ssGrad)" stroke-width="2.4"/>
+            <ellipse cx="16" cy="16" rx="6" ry="13" fill="none" stroke="url(#ssGrad)" stroke-width="2.4"/>
+            <line x1="3" y1="16" x2="29" y2="16" stroke="url(#ssGrad)" stroke-width="2.4"/>
+            <circle cx="16" cy="16" r="3" fill="url(#ssGrad)"/>
+          </svg>
+          <span class="ss-word">Social<b>Sphere</b></span>
+        </div>
+        <div class="top-icons">
+          <button aria-label="Notifications">&#9825;</button>
+          <button aria-label="Messages">&#9992;</button>
+        </div>
+      </header>
+
+      <div class="stories">
+        <div class="story"><div class="ring me"><div class="pic">&#65291;<span class="add">+</span></div></div><span>Your story</span></div>
+        <div class="story"><div class="ring"><div class="pic" style="background:#5b8fe6">A</div></div><span>anna_k</span></div>
+        <div class="story"><div class="ring"><div class="pic" style="background:#39b8ad">M</div></div><span>marco.r</span></div>
+        <div class="story"><div class="ring"><div class="pic" style="background:#9b7fd0">L</div></div><span>lena.travels</span></div>
+        <div class="story"><div class="ring"><div class="pic" style="background:#e0996a">T</div></div><span>tom_eats</span></div>
+        <div class="story"><div class="ring"><div class="pic" style="background:#6aa0e0">S</div></div><span>studio.day</span></div>
+      </div>
+
+      <article class="post">
+        <div class="post-head">
+          <span class="av" style="background:#5b8fe6">A</span>
+          <div><div class="name">anna_k</div><div class="loc">Berlin, Germany</div></div>
+          <button class="more" aria-label="More">&#8943;</button>
+        </div>
+        <div class="post-img p1">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="9" r="3"/><path d="M3 19l5-5 4 4 4-6 5 7z"/></svg>
+        </div>
+        <div class="actions">
+          <button class="like" aria-label="Like">&#9825;</button>
+          <button aria-label="Comment">&#128172;</button>
+          <button aria-label="Share">&#9992;</button>
+          <button class="save" aria-label="Save">&#128278;</button>
+        </div>
+        <div class="likes">2,184 likes</div>
+        <div class="cap"><b>anna_k</b> Morning walks hit different in spring &#127807;</div>
+        <div class="cmts">View all 86 comments</div>
+        <div class="time">3 hours ago</div>
+      </article>
+
+      <article class="post">
+        <div class="post-head">
+          <span class="av" style="background:#39b8ad">M</span>
+          <div><div class="name">marco.r</div><div class="loc">Original audio</div></div>
+          <button class="more" aria-label="More">&#8943;</button>
+        </div>
+        <div class="post-img p2">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14v12H8l-3 3z"/></svg>
+        </div>
+        <div class="actions">
+          <button class="like" aria-label="Like">&#9825;</button>
+          <button aria-label="Comment">&#128172;</button>
+          <button aria-label="Share">&#9992;</button>
+          <button class="save" aria-label="Save">&#128278;</button>
+        </div>
+        <div class="likes">947 likes</div>
+        <div class="cap"><b>marco.r</b> New project coming soon &#128064;</div>
+        <div class="cmts">View all 23 comments</div>
+        <div class="time">5 hours ago</div>
+      </article>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11 12 4l8 7v8H4z" stroke-linejoin="round"/></svg></button>
+        <button aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        <button aria-label="Create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 9v6M9 12h6"/></svg></button>
+        <button aria-label="Reels"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 4l2 4M14 4l2 4M4 8h16M10 12l4 2.5-4 2.5z" stroke-linejoin="round"/></svg></button>
+        <button aria-label="Profile"><span class="me">Y</span></button>
+      </nav>
+    `,
+
+    consentHtml: `
+      <div class="consent-overlay" id="ssOverlay" hidden>
+        <div class="consent" role="dialog" aria-modal="true" aria-labelledby="ssTitle">
+          <div class="c-body">
+            <h2 id="ssTitle">How should SocialSphere use your personal data for advertising?</h2>
+            <p>EU law gives you the right to choose how your personal data is used for advertising.
+               Your choice applies to all accounts linked in your Accounts Center across
+               SocialSphere products (FriendSpace and InstaPic).</p>
+
+            <label class="optrow">
+              <input type="radio" name="ss_ad" value="subscribe">
+              <span class="t">
+                <strong>Use without ads for &euro;7.99/month</strong>
+                <ul>
+                  <li>You pay a monthly fee to use SocialSphere products without advertising.</li>
+                  <li>Your personal data will not be used for advertising purposes.</li>
+                  <li>You will not see advertisements on SocialSphere products.</li>
+                </ul>
+              </span>
+            </label>
+
+            <label class="optrow">
+              <input type="radio" name="ss_ad" value="personalised_ads">
+              <span class="t">
+                <strong>Use for free with personalised ads</strong>
+                <ul>
+                  <li>You use SocialSphere products free of charge.</li>
+                  <li>Personal data will be used to personalise advertising.</li>
+                  <li>This includes data you provide, your activity across SocialSphere products,
+                      your connections, and your app, browser and device data.</li>
+                  <li>Advertisements will be tailored to your interests and activity.</li>
+                  <li>Your access to SocialSphere products and features will not depend on this choice.</li>
+                </ul>
+              </span>
+            </label>
+
+            <label class="optrow">
+              <input type="radio" name="ss_ad" value="less_personalised_ads">
+              <span class="t">
+                <strong>Use for free with less-personalised ads</strong>
+                <ul>
+                  <li>You use SocialSphere products free of charge.</li>
+                  <li>Less personal data will be used for advertising.</li>
+                  <li>Advertisements will be based on limited information, such as the content
+                      you are viewing, your age range, general location and interactions with advertisements.</li>
+                  <li>Advertisements may be less tailored to your interests.</li>
+                  <li>Your access to SocialSphere products and features will not depend on this choice.</li>
+                </ul>
+              </span>
+            </label>
+
+            <h3>Additional information</h3>
+            <ul>
+              <li>You can change your choice at any time.</li>
+              <li>More information about how your data is used is available in the
+                  <a href="#">Privacy Policy</a>.</li>
+            </ul>
+
+            <p class="ss-warn" id="ssWarn">Please make a selection before continuing.</p>
+          </div>
+          <div class="c-foot">
+            <button class="ss-btn" id="ssConfirm">Confirm</button>
+          </div>
+        </div>
+      </div>
+    `,
+
+    initConsent: function() {
+      // Like toggle interaction
+      document.querySelectorAll('.actions .like').forEach(function(b) {
+        b.addEventListener('click', function() {
+          b.classList.toggle('on');
+          b.textContent = b.classList.contains('on') ? '\u2665' : '\u2661';
+        });
+      });
+      // Confirm button
+      document.getElementById('ssConfirm').addEventListener('click', function() {
+        var selected = document.querySelector('input[name="ss_ad"]:checked');
+        if (!selected) {
+          document.getElementById('ssWarn').classList.add('show');
+          return;
+        }
+        document.getElementById('ssOverlay').setAttribute('hidden', '');
+        window.sendCookieResult(selected.value, selected.value);
+      });
+    }
+  };
+
+  /* ────────────────────────────────────────────────
+     M1 — SocialSphere / Status Quo
+     PLACEHOLDER — 3-screen flow to be inserted by Christina
+     Reuses SocialSphere website CSS and page HTML from M2
+  ──────────────────────────────────────────────── */
+  C.M1 = {
+    overlayId: 'm1Overlay',
+    css: C.M2.css,       // same SocialSphere website CSS
+    pageHtml: C.M2.pageHtml, // same SocialSphere website HTML
+    consentHtml: `
+      <!-- PLACEHOLDER: SocialSphere Status Quo — 3-screen flow -->
+      <!-- Screen 1: Subscribe or use free with ads -->
+      <!-- Screen 2: Agree page -->
+      <!-- Screen 3: Personalised vs less-personalised ads -->
+      <div class="consent-overlay" id="m1Overlay" hidden>
+        <div class="consent" role="dialog" aria-modal="true">
+          <div class="c-body">
+            <h2>PLACEHOLDER — SocialSphere Status Quo</h2>
+            <p>Insert 3-screen status quo consent flow here.</p>
+          </div>
+          <div class="c-foot">
+            <button class="ss-btn" id="m1Confirm">Continue</button>
+          </div>
+        </div>
+      </div>
+    `,
+    initConsent: function() {
+      document.querySelectorAll('.actions .like').forEach(function(b) {
+        b.addEventListener('click', function() {
+          b.classList.toggle('on');
+          b.textContent = b.classList.contains('on') ? '\u2665' : '\u2661';
+        });
+      });
+      document.getElementById('m1Confirm').addEventListener('click', function() {
+        document.getElementById('m1Overlay').setAttribute('hidden', '');
+        window.sendCookieResult('personalised_ads', 'personalised_ads');
+      });
+    }
+  };
+
+  /* ────────────────────────────────────────────────
+     A1 — MegaMarket / Status Quo
+     PLACEHOLDER — to be inserted by Christina
+  ──────────────────────────────────────────────── */
+  C.A1 = {
+    overlayId: 'a1Overlay',
+    css: `
+      body { background: #EAEDED; font-family: Arial, sans-serif; }
+      /* PLACEHOLDER: insert MegaMarket website CSS here */
+    `,
+    pageHtml: `
+      <!-- PLACEHOLDER: insert MegaMarket website HTML here -->
+      <div style="padding:40px;text-align:center;color:#999">
+        <h2>MegaMarket &ndash; Status Quo</h2>
+        <p>PLACEHOLDER &mdash; website HTML to be inserted here</p>
+      </div>
+    `,
+    consentHtml: `
+      <!-- PLACEHOLDER: MegaMarket Status Quo consent notice (2 screens) -->
+      <div id="a1Overlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);
+           z-index:60;display:flex;align-items:flex-end;">
+        <div style="background:#fff;width:100%;padding:24px;border-top:4px solid #FF9900;">
+          <p>PLACEHOLDER &mdash; MegaMarket status quo consent notice</p>
+          <button id="a1Accept" style="background:#FF9900;border:1px solid #a88734;padding:10px 22px;
+            border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">Accept</button>
+          <button id="a1Decline" style="background:#fff;border:1px solid #999;padding:10px 22px;
+            border-radius:4px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px">Decline</button>
+          <button id="a1Customise" style="background:#fff;border:1px solid #007185;padding:10px 22px;
+            border-radius:4px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px;color:#007185">Customise</button>
+        </div>
+      </div>
+    `,
+    initConsent: function() {
+      document.getElementById('a1Accept').addEventListener('click', function() {
+        document.getElementById('a1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('accept', 'accept');
+      });
+      document.getElementById('a1Decline').addEventListener('click', function() {
+        document.getElementById('a1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('decline', 'decline');
+      });
+      document.getElementById('a1Customise').addEventListener('click', function() {
+        document.getElementById('a1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('customise', 'customise');
+      });
+    }
+  };
+
+  /* ────────────────────────────────────────────────
+     A2 — MegaMarket / Neutral
+     PLACEHOLDER — to be inserted by Christina
+  ──────────────────────────────────────────────── */
+  C.A2 = {
+    overlayId: 'a2Overlay',
+    css: C.A1.css,
+    pageHtml: C.A1.pageHtml,
+    consentHtml: `
+      <!-- PLACEHOLDER: MegaMarket Neutral consent notice (2 screens) -->
+      <div id="a2Overlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);
+           z-index:60;display:flex;align-items:flex-end;">
+        <div style="background:#fff;width:100%;padding:24px;border-top:4px solid #FF9900;">
+          <p>PLACEHOLDER &mdash; MegaMarket neutral consent notice</p>
+          <button id="a2Accept" style="background:#FF9900;border:1px solid #a88734;padding:10px 22px;
+            border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">Accept</button>
+          <button id="a2Decline" style="background:#fff;border:1px solid #999;padding:10px 22px;
+            border-radius:4px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px">Decline</button>
+          <button id="a2Customise" style="background:#fff;border:1px solid #007185;padding:10px 22px;
+            border-radius:4px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px;color:#007185">Customise</button>
+        </div>
+      </div>
+    `,
+    initConsent: function() {
+      document.getElementById('a2Accept').addEventListener('click', function() {
+        document.getElementById('a2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('accept', 'accept');
+      });
+      document.getElementById('a2Decline').addEventListener('click', function() {
+        document.getElementById('a2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('decline', 'decline');
+      });
+      document.getElementById('a2Customise').addEventListener('click', function() {
+        document.getElementById('a2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('customise', 'customise');
+      });
+    }
+  };
+
+  /* ────────────────────────────────────────────────
+     L1 — Contact / Status Quo
+     PLACEHOLDER — to be inserted by Christina
+  ──────────────────────────────────────────────── */
+  C.L1 = {
+    overlayId: 'l1Overlay',
+    css: `
+      body { background: #f3f2ef; font-family: Arial, sans-serif; }
+      /* PLACEHOLDER: insert Contact website CSS here */
+    `,
+    pageHtml: `
+      <!-- PLACEHOLDER: insert Contact website HTML here -->
+      <div style="padding:40px;text-align:center;color:#999">
+        <h2>Contact &ndash; Status Quo</h2>
+        <p>PLACEHOLDER &mdash; website HTML to be inserted here</p>
+      </div>
+    `,
+    consentHtml: `
+      <!-- PLACEHOLDER: Contact Status Quo consent notice (2 screens) -->
+      <div id="l1Overlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);
+           z-index:60;display:flex;align-items:flex-end;">
+        <div style="background:#fff;width:100%;padding:24px;border-top:4px solid #0A66C2;">
+          <p>PLACEHOLDER &mdash; Contact status quo consent notice</p>
+          <button id="l1Connect" style="background:#0A66C2;color:#fff;border:none;padding:10px 24px;
+            border-radius:24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">Yes, keep all connected</button>
+          <button id="l1Separate" style="background:#fff;border:1px solid #999;padding:10px 24px;
+            border-radius:24px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px">Connect none</button>
+          <button id="l1More" style="background:#fff;border:1px solid #0A66C2;padding:10px 24px;
+            border-radius:24px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px;color:#0A66C2">More options</button>
+        </div>
+      </div>
+    `,
+    initConsent: function() {
+      document.getElementById('l1Connect').addEventListener('click', function() {
+        document.getElementById('l1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('connect', 'all_connected');
+      });
+      document.getElementById('l1Separate').addEventListener('click', function() {
+        document.getElementById('l1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('keep_separate', 'none_connected');
+      });
+      document.getElementById('l1More').addEventListener('click', function() {
+        document.getElementById('l1Overlay').setAttribute('hidden','');
+        window.sendCookieResult('customise', 'customise');
+      });
+    }
+  };
+
+  /* ────────────────────────────────────────────────
+     L2 — Contact / Neutral
+     PLACEHOLDER — to be inserted by Christina
+  ──────────────────────────────────────────────── */
+  C.L2 = {
+    overlayId: 'l2Overlay',
+    css: C.L1.css,
+    pageHtml: C.L1.pageHtml,
+    consentHtml: `
+      <!-- PLACEHOLDER: Contact Neutral consent notice (2 screens) -->
+      <div id="l2Overlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.5);
+           z-index:60;display:flex;align-items:flex-end;">
+        <div style="background:#fff;width:100%;padding:24px;border-top:4px solid #0A66C2;">
+          <p>PLACEHOLDER &mdash; Contact neutral consent notice</p>
+          <button id="l2Connect" style="background:#0A66C2;color:#fff;border:none;padding:10px 24px;
+            border-radius:24px;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px">Yes, keep all connected</button>
+          <button id="l2Separate" style="background:#fff;border:1px solid #999;padding:10px 24px;
+            border-radius:24px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px">Connect none</button>
+          <button id="l2More" style="background:#fff;border:1px solid #0A66C2;padding:10px 24px;
+            border-radius:24px;font-size:14px;cursor:pointer;margin-top:12px;margin-left:8px;color:#0A66C2">More options</button>
+        </div>
+      </div>
+    `,
+    initConsent: function() {
+      document.getElementById('l2Connect').addEventListener('click', function() {
+        document.getElementById('l2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('connect', 'all_connected');
+      });
+      document.getElementById('l2Separate').addEventListener('click', function() {
+        document.getElementById('l2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('keep_separate', 'none_connected');
+      });
+      document.getElementById('l2More').addEventListener('click', function() {
+        document.getElementById('l2Overlay').setAttribute('hidden','');
+        window.sendCookieResult('customise', 'customise');
+      });
+    }
+  };
+
+  /* ════════════════════════════════════════════════
+     LOAD CONDITION
+  ════════════════════════════════════════════════ */
+  var cond = C[condition];
+  if (!cond) {
+    document.body.innerHTML = '<p style="padding:40px;font-family:Arial;color:#666">Unknown condition: ' + condition + '</p>';
+    return;
+  }
+
+  // Inject condition CSS
+  document.getElementById('condition-css').textContent = cond.css;
+
+  // Inject page content
+  document.getElementById('page-content').innerHTML = cond.pageHtml;
+
+  // Inject consent overlay
+  document.getElementById('consent-container').innerHTML = cond.consentHtml;
+
+  // Wire up consent buttons and interactions
+  cond.initConsent();
+
+  /* ════════════════════════════════════════════════
+     SCROLL TRIGGER
+     Shows consent overlay N seconds after first scroll
+  ════════════════════════════════════════════════ */
+  var scrollFired = false;
+  var hintEl = document.getElementById('scroll-hint');
+
+  function showBanner() {
+    hintEl.classList.add('hidden');
+    var overlay = document.getElementById(cond.overlayId);
+    if (overlay) overlay.removeAttribute('hidden');
+  }
+
+  if (delay === 0) {
+    hintEl.classList.add('hidden');
+    showBanner();
+  } else {
+    window.addEventListener('scroll', function onS() {
+      if (scrollFired) return;
+      scrollFired = true;
+      window.removeEventListener('scroll', onS);
+      hintEl.classList.add('hidden');
+      setTimeout(showBanner, delay);
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
