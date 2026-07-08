@@ -585,6 +585,9 @@ body { overflow-x: hidden; }
   // Wire up consent buttons and interactions
   cond.initConsent();
 
+  // Disable all hyperlinks to prevent navigation out of the survey iframe
+  document.querySelectorAll('a[href]').forEach(function(a) { a.removeAttribute('href'); });
+
   /* ════════════════════════════════════════════════
      SCROLL TRIGGER
      Shows consent overlay N seconds after first scroll
