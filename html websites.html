@@ -1239,6 +1239,10 @@ window.sendCookieResult = function(choice, details){
     });
   }
 })();
+
+/* Disable all hyperlinks to prevent navigation out of the survey iframe */
+document.querySelectorAll('a[href]').forEach(function(a){ a.removeAttribute('href'); });
+</script>
 </script>
 </body>
 </html>
