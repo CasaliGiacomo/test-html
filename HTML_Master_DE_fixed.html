@@ -342,6 +342,13 @@ body.company-contact .seg button.on{color:#fff;}
 #sphereOverlay .btn{width:100%;border-radius:24px;padding:13px;font-size:15px;font-weight:700;border:1px solid var(--accent-dark);}
 #sphereOverlay .btn-primary{background:var(--accent);color:#fff;}
 #sphereOverlay .btn-primary:hover{background:var(--accent-dark);}
+#sphereOverlay .btn-primary:disabled,
+#sphereOverlay .btn-primary:disabled:hover{
+  background:#e3e6e8;
+  color:#9aa0a6;
+  border-color:#d3d7da;
+  cursor:not-allowed;
+}
 #sphereOverlay .btn-secondary{background:#fff;color:#6b7280;border:1px solid #cfd3d8;margin-top:10px;}
 #sphereOverlay .btn-secondary:hover{background:var(--soft);}
 </style>
@@ -1233,11 +1240,32 @@ window.sendCookieResult = function(choice, details){
     show(0);
   }
   function initNU(){
-    document.getElementById("sphConfirm").addEventListener("click", function(){
-      var sel = document.querySelector("#sphereNeutral input[name='sph-ad']:checked");
-      finish("ad_choice", { option: sel ? sel.value : null }, "Deine Auswahl wurde gespeichert.");
+  var confirmBtn = document.getElementById("sphConfirm");
+  var options = document.querySelectorAll("#sphereNeutral input[name='sph-ad']");
+
+  // Do not allow confirmation until one option has been selected
+  confirmBtn.disabled = true;
+
+  options.forEach(function(option){
+    option.addEventListener("change", function(){
+      confirmBtn.disabled =
+        !document.querySelector("#sphereNeutral input[name='sph-ad']:checked");
     });
-  }
+  });
+
+  confirmBtn.addEventListener("click", function(){
+    var sel = document.querySelector("#sphereNeutral input[name='sph-ad']:checked");
+
+    // Safety check: never save/continue without a selection
+    if (!sel) return;
+
+    finish(
+      "ad_choice",
+      { option: sel.value },
+      "Your choice has been saved."
+    );
+  });
+}
 })();
 
 /* Disable all hyperlinks to prevent navigation out of the survey iframe */
