@@ -668,8 +668,8 @@ body.company-contact .seg button.on{color:#fff;}
         <section class="screen active" id="sphScreen1">
           <h2 id="sphTitle">Want to subscribe or continue using our products free of charge with ads?</h2>
           <p>Saskaņā ar likumiem tavā reģionā vari izvēlēties, vai piekrīti, ka apstrādājam tavus personas datus reklāmām. Tava izvēle attieksies uz kontiem šajā Kontu centrā visos SocialSphere uzņēmuma produktos.</p>
-          <label class="optrow"><input type="radio" name="sph-s1"><span class="t"><strong>Subscribe to use without ads</strong><span>Subscribe to use our products without ads, from &euro;7.99/month. Your data won't be processed for ads.</span></span></label>
-          <label class="optrow"><input type="radio" name="sph-s1" checked><span class="t"><strong>Use free of charge with ads</strong><span>Discover products and brands through personalised ads, while using our products free of charge. Your data will be processed for ads. You'll later have the option to see less-personalised ads.</span></span></label>
+          <label class="optrow"><input type="radio" name="sph-s1" value="subscribe"><span class="t"><strong>Subscribe to use without ads</strong><span>Subscribe to use our products without ads, from &euro;7.99/month. Your data won't be processed for ads.</span></span></label>
+          <label class="optrow"><input type="radio" name="sph-s1" value="free_with_ads" checked><span class="t"><strong>Use free of charge with ads</strong><span>Discover products and brands through personalised ads, while using our products free of charge. Your data will be processed for ads. You'll later have the option to see less-personalised ads.</span></span></label>
           <p class="small" style="border-top:1px solid var(--line);padding-top:12px;">You'll learn more about what each option means for you before you confirm your choice. You can compare your choices, including less-personalised ads.</p>
           <p class="small">You can change your choice at any time. If you don't want to make this choice, you can download your information and leave our services.</p>
         </section>
@@ -1232,7 +1232,34 @@ window.sendCookieResult = function(choice, details){
       contBtn.textContent = (n===0) ? "Turpināt" : "Piekrītu";
       body.scrollTop = 0;
     }
-    contBtn.addEventListener("click", function(){ show(cur+1); });
+    contBtn.addEventListener("click", function(){
+
+  // Screen 1: Subscribe vs free with ads
+  if (cur === 0) {
+    var selected = document.querySelector(
+      "#sphereNonNeutral input[name='sph-s1']:checked"
+    );
+
+    if (selected && selected.value === "subscribe") {
+      finish(
+        "ad_experience",
+        { choice: "subscribe" },
+        "Your choice has been saved."
+      );
+      return;
+    }
+
+    // Free with ads -> continue to existing screen 2
+    show(1);
+    return;
+  }
+
+  // Screen 2: Agree -> continue to existing screen 3
+  if (cur === 1) {
+    show(2);
+  }
+
+});
     back.addEventListener("click", function(){ if(cur>0) show(cur-1); });
     document.querySelectorAll("#sphereNonNeutral [data-sphclose]").forEach(function(b){
       b.addEventListener("click", function(){ finish("ad_experience", { choice: b.getAttribute("data-choice") }, "Tava izvēle ir saglabāta."); });
